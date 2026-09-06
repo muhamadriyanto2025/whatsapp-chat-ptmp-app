@@ -12,7 +12,7 @@
   </head>
   <body>
     <div class="phone-shell">
-      <div class="wa-app">
+      <div class="wa-app" id="waApp">
         <section class="screen chat-screen active" id="chatScreen">
           <header class="wa-header">
             <div class="header-left">
@@ -108,7 +108,7 @@
         <form id="configForm" class="config-form">
           <label>
             <span>Nama customer</span>
-            <input id="contactName" type="text" value="Riyan" />
+            <input id="contactName" type="text" value="Customer JNT" />
           </label>
 
           <label>
@@ -123,12 +123,12 @@
 
           <label>
             <span>Chat customer</span>
-            <textarea id="incomingMessage" rows="4">Halo, ini contoh pesan yang masuk dari customer.</textarea>
+            <textarea id="incomingMessage" rows="4">Halo, terima kasih sudah menghubungi kami. Ada yang bisa kami bantu?</textarea>
           </label>
 
           <label>
             <span>Chat saya</span>
-            <textarea id="outgoingMessage" rows="4">Halo juga, ini contoh pesan saya.</textarea>
+            <textarea id="outgoingMessage" rows="4">Halo, saya dari JNT. Saya mau cek status paket saya.</textarea>
           </label>
 
           <button type="submit" class="primary-btn">Simpan Edit</button>

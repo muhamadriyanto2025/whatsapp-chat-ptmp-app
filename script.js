@@ -17,6 +17,24 @@ const profileScreen = document.getElementById('profileScreen');
 
 const STORAGE_KEY = 'whatsapp-mobile-clone-data';
 
+const defaultOutgoingMessages = [
+  'Halo, saya dari JNT. Saya mau cek status paket saya.',
+  'Mohon bantu cek paket saya yang masih dalam perjalanan.',
+  'Terima kasih, saya tunggu update selanjutnya.'
+];
+
+const defaultIncomingMessages = [
+  'Halo, terima kasih sudah menghubungi kami. Ada yang bisa kami bantu?',
+  'Baik, saya cek status pengiriman Anda sekarang.',
+  'Siap, paket sedang diproses dan akan segera dikirimkan.'
+];
+
+function normalizeMessages(saved, fallback) {
+  if (Array.isArray(saved) && saved.length) return saved.filter((item) => typeof item === 'string' && item.trim());
+  if (typeof saved === 'string' && saved.trim()) return [saved.trim()];
+  return fallback;
+}
+
 function getInitials(name) {
   const safeName = (name || 'Kontak').trim();
   if (!safeName) return 'K';
@@ -45,23 +63,61 @@ function saveState() {
     status: contactStatus.value,
     incoming: incomingMessage.value,
     outgoing: outgoingMessage.value,
+    incomingMessages: normalizeMessages([], defaultIncomingMessages),
+    outgoingMessages: normalizeMessages([], defaultOutgoingMessages)
   };
+
+  if (incomingMessage.value.trim()) data.incomingMessages = [incomingMessage.value.trim(), ...defaultIncomingMessages.slice(1)];
+  if (outgoingMessage.value.trim()) data.outgoingMessages = [outgoingMessage.value.trim(), ...defaultOutgoingMessages.slice(1)];
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
+
+  if (!raw) {
+    contactName.value = 'Customer JNT';
+    contactPhone.value = '+6282229509095';
+    contactStatus.value = 'Online';
+    incomingMessage.value = defaultIncomingMessages[0];
+    outgoingMessage.value = defaultOutgoingMessages[0];
+    saveState();
+    return;
+  }
 
   try {
     const data = JSON.parse(raw);
-    contactName.value = data.name || 'Riyan';
-    contactPhone.value = data.phone || '+6282229509095';
-    contactStatus.value = data.status || 'Online';
-    incomingMessage.value = data.incoming || 'Halo, ini contoh pesan yang masuk dari customer.';
-    outgoingMessage.value = data.outgoing || 'Halo juga, ini contoh pesan saya.';
+    const isLegacyPreset =
+      (data.name || '').trim() === 'Riyan' ||
+      (data.outgoing || '').trim() === 'Halo juga, ini contoh pesan saya.' ||
+      (data.incoming || '').trim() === 'Halo, ini contoh pesan yang masuk dari customer.';
+
+    const fallbackName = isLegacyPreset ? 'Customer JNT' : (data.name || 'Customer JNT');
+    const fallbackPhone = isLegacyPreset ? '+6282229509095' : (data.phone || '+6282229509095');
+    const fallbackStatus = isLegacyPreset ? 'Online' : (data.status || 'Online');
+
+    contactName.value = fallbackName;
+    contactPhone.value = fallbackPhone;
+    contactStatus.value = fallbackStatus;
+
+    const savedIncoming = normalizeMessages(data.incomingMessages || data.incoming, defaultIncomingMessages);
+    const savedOutgoing = normalizeMessages(data.outgoingMessages || data.outgoing, defaultOutgoingMessages);
+
+    incomingMessage.value = isLegacyPreset ? defaultIncomingMessages[0] : (savedIncoming[0] || defaultIncomingMessages[0]);
+    outgoingMessage.value = isLegacyPreset ? defaultOutgoingMessages[0] : (savedOutgoing[0] || defaultOutgoingMessages[0]);
+
+    if (isLegacyPreset) {
+      saveState();
+    }
   } catch (error) {
     console.warn('Failed to parse saved chat data', error);
+    contactName.value = 'Customer JNT';
+    contactPhone.value = '+6282229509095';
+    contactStatus.value = 'Online';
+    incomingMessage.value = defaultIncomingMessages[0];
+    outgoingMessage.value = defaultOutgoingMessages[0];
+    saveState();
   }
 }
 
@@ -104,14 +160,30 @@ function createMessageBubble(text, type) {
 }
 
 function renderChat() {
-  const incomingText = incomingMessage.value.trim() || 'Halo, ini contoh pesan yang masuk dari customer.';
-  const outgoingText = outgoingMessage.value.trim() || 'Halo juga, ini contoh pesan saya.';
+  const outgoingSequence = normalizeMessages([
+    outgoingMessage.value.trim() || defaultOutgoingMessages[0],
+    ...defaultOutgoingMessages.slice(1)
+  ], defaultOutgoingMessages);
+
+  const incomingSequence = normalizeMessages([
+    incomingMessage.value.trim() || defaultIncomingMessages[0],
+    ...defaultIncomingMessages.slice(1)
+  ], defaultIncomingMessages);
 
   chatBody.innerHTML = '<div class="date-pill">Hari ini</div>';
-  chatBody.appendChild(createMessageBubble(incomingText, 'incoming'));
-  chatBody.appendChild(createMessageBubble(outgoingText, 'outgoing'));
 
-  composerInput.value = outgoingText;
+  const maxLength = Math.max(outgoingSequence.length, incomingSequence.length);
+
+  for (let index = 0; index < maxLength; index += 1) {
+    if (outgoingSequence[index]) {
+      chatBody.appendChild(createMessageBubble(outgoingSequence[index], 'outgoing'));
+    }
+    if (incomingSequence[index]) {
+      chatBody.appendChild(createMessageBubble(incomingSequence[index], 'incoming'));
+    }
+  }
+
+  composerInput.value = outgoingSequence[0] || defaultOutgoingMessages[0];
 }
 
 function openEditor() {
