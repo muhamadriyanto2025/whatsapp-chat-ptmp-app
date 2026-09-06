@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#075e54" />
+    <title>WhatsApp Mobile Clone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="phone-shell">
+      <div class="wa-app">
+        <section class="screen chat-screen active" id="chatScreen">
+          <header class="wa-header">
+            <div class="header-left">
+              <button class="mini-btn" aria-label="kembali">←</button>
+              <div class="header-user-wrap">
+                <div class="avatar" id="headerAvatar">R</div>
+                <div>
+                  <h1 id="chatName">Riyan</h1>
+                  <p id="chatStatus">Online</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="header-icons">
+              <button class="mini-btn" aria-label="videocall">📹</button>
+              <button class="mini-btn" aria-label="call">📞</button>
+              <button class="mini-btn" id="openProfile" aria-label="open profile">☰</button>
+              <button class="mini-btn" id="editToggle" aria-label="edit">✎</button>
+            </div>
+          </header>
+
+          <section class="chat-surface" id="chatBody">
+            <div class="date-pill">Hari ini</div>
+            <div class="message incoming">
+              <div class="bubble">Halo, ini contoh pesan yang masuk dari customer.</div>
+              <span class="time">10:30</span>
+            </div>
+
+            <div class="message outgoing">
+              <div class="bubble">Halo juga, ini contoh pesan saya.</div>
+              <span class="time">10:31</span>
+            </div>
+          </section>
+
+          <div class="composer">
+            <button class="composer-btn" aria-label="emoji">🙂</button>
+            <button class="composer-btn" aria-label="attach">📎</button>
+            <input id="composerInput" type="text" value="Halo juga, ini contoh pesan saya." aria-label="Ketik pesan" />
+            <button id="sendBtn" class="send-btn" aria-label="kirim">➤</button>
+          </div>
+        </section>
+
+        <section class="screen profile-screen" id="profileScreen">
+          <header class="profile-header">
+            <div class="profile-header-top">
+              <button class="mini-btn profile-back" id="closeProfile" aria-label="kembali">←</button>
+            </div>
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar" id="profileAvatar">R</div>
+            </div>
+            <h2 id="profileName">Riyan</h2>
+            <p id="profilePhone">+6282229509095</p>
+          </header>
+
+          <div class="profile-body">
+            <div class="profile-row">
+              <span class="label">Nama</span>
+              <span id="profileNameInline">Riyan</span>
+            </div>
+            <div class="profile-row">
+              <span class="label">Nomor</span>
+              <span id="profilePhoneInline">+6282229509095</span>
+            </div>
+            <div class="profile-row">
+              <span class="label">Status</span>
+              <span id="profileStatus">Online</span>
+            </div>
+
+            <div class="media-grid">
+              <div class="media-item">
+                <span>🖼️</span>
+                <small>Media</small>
+              </div>
+              <div class="media-item">
+                <span>🔗</span>
+                <small>Link</small>
+              </div>
+              <div class="media-item">
+                <span>📄</span>
+                <small>Dokumen</small>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="editor-sheet" id="editorSheet" aria-label="Edit contact">
+        <div class="sheet-header">
+          <h2>Ubah Kontak</h2>
+          <button class="sheet-close" id="closeEditor" aria-label="Tutup editor">✕</button>
+        </div>
+
+        <form id="configForm" class="config-form">
+          <label>
+            <span>Nama customer</span>
+            <input id="contactName" type="text" value="Riyan" />
+          </label>
+
+          <label>
+            <span>Nomor customer</span>
+            <input id="contactPhone" type="text" value="+6282229509095" />
+          </label>
+
+          <label>
+            <span>Status / kondisi</span>
+            <input id="contactStatus" type="text" value="Online" />
+          </label>
+
+          <label>
+            <span>Chat customer</span>
+            <textarea id="incomingMessage" rows="4">Halo, ini contoh pesan yang masuk dari customer.</textarea>
+          </label>
+
+          <label>
+            <span>Chat saya</span>
+            <textarea id="outgoingMessage" rows="4">Halo juga, ini contoh pesan saya.</textarea>
+          </label>
+
+          <button type="submit" class="primary-btn">Simpan Edit</button>
+        </form>
+      </aside>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
