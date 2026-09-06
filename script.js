@@ -34,14 +34,7 @@ const defaultIncomingMessages = [
 let chatEntries = [];
 
 function getDefaultChatEntries() {
-  return [
-    { type: 'outgoing', text: defaultOutgoingMessages[0] },
-    { type: 'incoming', text: defaultIncomingMessages[0] },
-    { type: 'outgoing', text: defaultOutgoingMessages[1] },
-    { type: 'incoming', text: defaultIncomingMessages[1] },
-    { type: 'outgoing', text: defaultOutgoingMessages[2] },
-    { type: 'incoming', text: defaultIncomingMessages[2] }
-  ];
+  return [];
 }
 
 function normalizeMessages(saved, fallback) {
@@ -51,7 +44,7 @@ function normalizeMessages(saved, fallback) {
 }
 
 function normalizeChatEntries(saved) {
-  if (!Array.isArray(saved)) return getDefaultChatEntries();
+  if (!Array.isArray(saved)) return [];
 
   const cleaned = saved
     .map((entry) => {
@@ -63,7 +56,7 @@ function normalizeChatEntries(saved) {
     })
     .filter(Boolean);
 
-  return cleaned.length ? cleaned : getDefaultChatEntries();
+  return cleaned;
 }
 
 function getInitials(name) {
@@ -142,7 +135,7 @@ function collectChatEntries() {
     })
     .filter(Boolean);
 
-  return entries.length ? entries : getDefaultChatEntries();
+  return entries;
 }
 
 function saveState() {
@@ -150,7 +143,7 @@ function saveState() {
     name: contactName.value,
     phone: contactPhone.value,
     status: contactStatus.value,
-    chatEntries: chatEntries.length ? chatEntries : getDefaultChatEntries()
+    chatEntries: chatEntries.length ? chatEntries : []
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -163,7 +156,7 @@ function loadState() {
     contactName.value = 'Customer JNT';
     contactPhone.value = '+6282229509095';
     contactStatus.value = 'Online';
-    chatEntries = getDefaultChatEntries();
+    chatEntries = [];
     saveState();
     return;
   }
@@ -184,7 +177,7 @@ function loadState() {
     contactStatus.value = fallbackStatus;
 
     const savedEntries = normalizeChatEntries(data.chatEntries || []);
-    chatEntries = isLegacyPreset ? getDefaultChatEntries() : savedEntries;
+    chatEntries = isLegacyPreset ? [] : savedEntries;
 
     if (isLegacyPreset) {
       saveState();
@@ -194,7 +187,7 @@ function loadState() {
     contactName.value = 'Customer JNT';
     contactPhone.value = '+6282229509095';
     contactStatus.value = 'Online';
-    chatEntries = getDefaultChatEntries();
+    chatEntries = [];
     saveState();
   }
 }
@@ -238,7 +231,7 @@ function createMessageBubble(text, type) {
 }
 
 function renderChat() {
-  const entries = chatEntries.length ? chatEntries : getDefaultChatEntries();
+  const entries = chatEntries.length ? chatEntries : [];
   chatBody.innerHTML = '<div class="date-pill">Hari ini</div>';
 
   entries.forEach((entry) => {
@@ -247,8 +240,7 @@ function renderChat() {
     }
   });
 
-  const firstOutgoing = entries.filter((entry) => entry.type === 'outgoing').map((entry) => entry.text).find(Boolean);
-  composerInput.value = firstOutgoing || '';
+  composerInput.value = '';
 }
 
 function insertEmojiIntoTarget(emoji) {
