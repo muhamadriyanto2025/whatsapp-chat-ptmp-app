@@ -2,10 +2,12 @@ const configForm = document.getElementById('configForm');
 const contactName = document.getElementById('contactName');
 const contactPhone = document.getElementById('contactPhone');
 const contactStatus = document.getElementById('contactStatus');
-const incomingMessage = document.getElementById('incomingMessage');
-const outgoingMessage = document.getElementById('outgoingMessage');
+const chatRowList = document.getElementById('chatRowList');
+const addChatRowBtn = document.getElementById('addChatRow');
 const composerInput = document.getElementById('composerInput');
 const sendBtn = document.getElementById('sendBtn');
+const emojiBtn = document.getElementById('emojiBtn');
+const emojiPicker = document.getElementById('emojiPicker');
 const chatBody = document.getElementById('chatBody');
 const editorSheet = document.getElementById('editorSheet');
 const editToggle = document.getElementById('editToggle');
@@ -29,10 +31,39 @@ const defaultIncomingMessages = [
   'Siap, paket sedang diproses dan akan segera dikirimkan.'
 ];
 
+let chatEntries = [];
+
+function getDefaultChatEntries() {
+  return [
+    { type: 'outgoing', text: defaultOutgoingMessages[0] },
+    { type: 'incoming', text: defaultIncomingMessages[0] },
+    { type: 'outgoing', text: defaultOutgoingMessages[1] },
+    { type: 'incoming', text: defaultIncomingMessages[1] },
+    { type: 'outgoing', text: defaultOutgoingMessages[2] },
+    { type: 'incoming', text: defaultIncomingMessages[2] }
+  ];
+}
+
 function normalizeMessages(saved, fallback) {
   if (Array.isArray(saved) && saved.length) return saved.filter((item) => typeof item === 'string' && item.trim());
   if (typeof saved === 'string' && saved.trim()) return [saved.trim()];
   return fallback;
+}
+
+function normalizeChatEntries(saved) {
+  if (!Array.isArray(saved)) return getDefaultChatEntries();
+
+  const cleaned = saved
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') return null;
+      const type = entry.type === 'incoming' ? 'incoming' : 'outgoing';
+      const text = typeof entry.text === 'string' ? entry.text.trim() : '';
+      if (!text) return null;
+      return { type, text };
+    })
+    .filter(Boolean);
+
+  return cleaned.length ? cleaned : getDefaultChatEntries();
 }
 
 function getInitials(name) {
@@ -56,19 +87,71 @@ function getAccentFromPhone(phone) {
   return palette[lastDigit % palette.length];
 }
 
+function buildChatRow(entry, index) {
+  const row = document.createElement('div');
+  row.className = 'chat-row';
+  row.dataset.index = String(index);
+
+  const select = document.createElement('select');
+  select.className = 'chat-role-select';
+  select.innerHTML = `
+    <option value="outgoing" ${entry.type === 'outgoing' ? 'selected' : ''}>Saya</option>
+    <option value="incoming" ${entry.type === 'incoming' ? 'selected' : ''}>Customer</option>
+  `;
+
+  const textarea = document.createElement('textarea');
+  textarea.className = 'chat-row-text';
+  textarea.rows = 3;
+  textarea.value = entry.text;
+  textarea.placeholder = 'Tulis chat...';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'chat-row-remove';
+  removeBtn.textContent = '✕';
+  removeBtn.title = 'Hapus baris chat';
+  removeBtn.addEventListener('click', () => {
+    if (chatEntries.length <= 1) return;
+    chatEntries.splice(index, 1);
+    renderChatEditor(chatEntries);
+  });
+
+  row.appendChild(select);
+  row.appendChild(textarea);
+  row.appendChild(removeBtn);
+  return row;
+}
+
+function renderChatEditor(entries) {
+  const safeEntries = entries.length ? entries : [{ type: 'outgoing', text: '' }];
+  chatRowList.innerHTML = '';
+
+  safeEntries.forEach((entry, index) => {
+    chatRowList.appendChild(buildChatRow(entry, index));
+  });
+}
+
+function collectChatEntries() {
+  const rows = [...chatRowList.querySelectorAll('.chat-row')];
+  const entries = rows
+    .map((row) => {
+      const select = row.querySelector('.chat-role-select');
+      const text = row.querySelector('.chat-row-text').value.trim();
+      if (!text) return null;
+      return { type: select.value, text };
+    })
+    .filter(Boolean);
+
+  return entries.length ? entries : getDefaultChatEntries();
+}
+
 function saveState() {
   const data = {
     name: contactName.value,
     phone: contactPhone.value,
     status: contactStatus.value,
-    incoming: incomingMessage.value,
-    outgoing: outgoingMessage.value,
-    incomingMessages: normalizeMessages([], defaultIncomingMessages),
-    outgoingMessages: normalizeMessages([], defaultOutgoingMessages)
+    chatEntries: chatEntries.length ? chatEntries : getDefaultChatEntries()
   };
-
-  if (incomingMessage.value.trim()) data.incomingMessages = [incomingMessage.value.trim(), ...defaultIncomingMessages.slice(1)];
-  if (outgoingMessage.value.trim()) data.outgoingMessages = [outgoingMessage.value.trim(), ...defaultOutgoingMessages.slice(1)];
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
@@ -80,8 +163,7 @@ function loadState() {
     contactName.value = 'Customer JNT';
     contactPhone.value = '+6282229509095';
     contactStatus.value = 'Online';
-    incomingMessage.value = defaultIncomingMessages[0];
-    outgoingMessage.value = defaultOutgoingMessages[0];
+    chatEntries = getDefaultChatEntries();
     saveState();
     return;
   }
@@ -101,11 +183,8 @@ function loadState() {
     contactPhone.value = fallbackPhone;
     contactStatus.value = fallbackStatus;
 
-    const savedIncoming = normalizeMessages(data.incomingMessages || data.incoming, defaultIncomingMessages);
-    const savedOutgoing = normalizeMessages(data.outgoingMessages || data.outgoing, defaultOutgoingMessages);
-
-    incomingMessage.value = isLegacyPreset ? defaultIncomingMessages[0] : (savedIncoming[0] || defaultIncomingMessages[0]);
-    outgoingMessage.value = isLegacyPreset ? defaultOutgoingMessages[0] : (savedOutgoing[0] || defaultOutgoingMessages[0]);
+    const savedEntries = normalizeChatEntries(data.chatEntries || []);
+    chatEntries = isLegacyPreset ? getDefaultChatEntries() : savedEntries;
 
     if (isLegacyPreset) {
       saveState();
@@ -115,8 +194,7 @@ function loadState() {
     contactName.value = 'Customer JNT';
     contactPhone.value = '+6282229509095';
     contactStatus.value = 'Online';
-    incomingMessage.value = defaultIncomingMessages[0];
-    outgoingMessage.value = defaultOutgoingMessages[0];
+    chatEntries = getDefaultChatEntries();
     saveState();
   }
 }
@@ -160,30 +238,42 @@ function createMessageBubble(text, type) {
 }
 
 function renderChat() {
-  const outgoingSequence = normalizeMessages([
-    outgoingMessage.value.trim() || defaultOutgoingMessages[0],
-    ...defaultOutgoingMessages.slice(1)
-  ], defaultOutgoingMessages);
-
-  const incomingSequence = normalizeMessages([
-    incomingMessage.value.trim() || defaultIncomingMessages[0],
-    ...defaultIncomingMessages.slice(1)
-  ], defaultIncomingMessages);
-
+  const entries = chatEntries.length ? chatEntries : getDefaultChatEntries();
   chatBody.innerHTML = '<div class="date-pill">Hari ini</div>';
 
-  const maxLength = Math.max(outgoingSequence.length, incomingSequence.length);
-
-  for (let index = 0; index < maxLength; index += 1) {
-    if (outgoingSequence[index]) {
-      chatBody.appendChild(createMessageBubble(outgoingSequence[index], 'outgoing'));
+  entries.forEach((entry) => {
+    if (entry && entry.text) {
+      chatBody.appendChild(createMessageBubble(entry.text, entry.type));
     }
-    if (incomingSequence[index]) {
-      chatBody.appendChild(createMessageBubble(incomingSequence[index], 'incoming'));
-    }
-  }
+  });
 
-  composerInput.value = outgoingSequence[0] || defaultOutgoingMessages[0];
+  const firstOutgoing = entries.filter((entry) => entry.type === 'outgoing').map((entry) => entry.text).find(Boolean);
+  composerInput.value = firstOutgoing || '';
+}
+
+function insertEmojiIntoTarget(emoji) {
+  const target = document.activeElement && document.activeElement.matches('input, textarea')
+    ? document.activeElement
+    : composerInput;
+
+  if (!target) return;
+
+  const start = target.selectionStart ?? target.value.length;
+  const end = target.selectionEnd ?? target.value.length;
+  const current = target.value || '';
+
+  target.value = `${current.slice(0, start)}${emoji}${current.slice(end)}`;
+  const newPosition = start + emoji.length;
+  target.focus();
+  target.setSelectionRange(newPosition, newPosition);
+}
+
+function toggleEmojiPicker() {
+  emojiPicker.classList.toggle('hidden');
+}
+
+function hideEmojiPicker() {
+  emojiPicker.classList.add('hidden');
 }
 
 function openEditor() {
@@ -204,8 +294,37 @@ function closeProfile() {
   chatScreen.classList.add('active');
 }
 
+addChatRowBtn.addEventListener('click', () => {
+  chatEntries = [...chatEntries, { type: 'outgoing', text: '' }];
+  renderChatEditor(chatEntries);
+});
+
+emojiBtn.addEventListener('click', (event) => {
+  event.stopPropagation();
+  toggleEmojiPicker();
+  composerInput.focus();
+});
+
+emojiPicker.addEventListener('click', (event) => {
+  const emojiButton = event.target.closest('.emoji-option');
+  if (!emojiButton) return;
+
+  const emoji = emojiButton.dataset.emoji;
+  if (!emoji) return;
+
+  insertEmojiIntoTarget(emoji);
+  hideEmojiPicker();
+});
+
+document.addEventListener('click', (event) => {
+  if (!emojiPicker.contains(event.target) && !emojiBtn.contains(event.target)) {
+    hideEmojiPicker();
+  }
+});
+
 configForm.addEventListener('submit', (event) => {
   event.preventDefault();
+  chatEntries = collectChatEntries();
   saveState();
   updateProfile();
   renderChat();
@@ -217,9 +336,10 @@ sendBtn.addEventListener('click', () => {
   const value = composerInput.value.trim();
   if (!value) return;
 
-  chatBody.appendChild(createMessageBubble(value, 'outgoing'));
-  outgoingMessage.value = value;
+  chatEntries = [...chatEntries, { type: 'outgoing', text: value }];
   saveState();
+  renderChatEditor(chatEntries);
+  renderChat();
   composerInput.value = '';
   chatBody.scrollTop = chatBody.scrollHeight;
 });
@@ -237,5 +357,6 @@ openProfileBtn.addEventListener('click', openProfile);
 closeProfileBtn.addEventListener('click', closeProfile);
 
 loadState();
+renderChatEditor(chatEntries);
 updateProfile();
 renderChat();

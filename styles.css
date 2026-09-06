@@ -217,15 +217,19 @@ button {
   align-self: flex-end;
 }
 
-.composer {
-  height: 68px;
+.composer-wrap {
+  position: relative;
   background: var(--wa-header);
   border-top: 1px solid var(--wa-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.composer {
+  height: 68px;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 0 10px 0 12px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
 .composer-btn {
@@ -257,6 +261,38 @@ button {
   color: #072113;
   font-size: 1.2rem;
   font-weight: 700;
+}
+
+.emoji-picker {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 72px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(17, 27, 33, 0.08);
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+
+.emoji-picker.hidden {
+  display: none;
+}
+
+.emoji-option {
+  border: 0;
+  background: transparent;
+  font-size: 1.5rem;
+  border-radius: 10px;
+  padding: 8px 0;
+}
+
+.emoji-option:hover {
+  background: #f3f4f6;
 }
 
 .profile-screen {
@@ -401,6 +437,71 @@ button {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--wa-muted);
+}
+
+.chat-list-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-row-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.chat-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 34px;
+  gap: 8px;
+  align-items: start;
+}
+
+.chat-role-select,
+.chat-row-text {
+  width: 100%;
+  border: 1px solid rgba(17, 27, 33, 0.08);
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: var(--wa-text);
+  outline: none;
+}
+
+.chat-role-select {
+  min-height: 42px;
+  font-weight: 600;
+  color: var(--wa-muted);
+}
+
+.chat-row-text {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.chat-row-remove {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #f0f2f5;
+  color: var(--wa-muted);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.secondary-btn {
+  border: 1px solid rgba(17, 27, 33, 0.08);
+  background: #f7f7f7;
+  color: var(--wa-text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 600;
 }
 
 .config-form input,
