@@ -97,6 +97,7 @@ function buildChatRow(entry, index) {
   textarea.rows = 3;
   textarea.value = entry.text;
   textarea.placeholder = 'Tulis chat...';
+  textarea.dataset.index = String(index);
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
@@ -213,20 +214,52 @@ function updateProfile() {
   });
 }
 
-function createMessageBubble(text, type) {
+function createMessageBubble(text, type, index) {
   const wrap = document.createElement('div');
   wrap.className = `message ${type}`;
+
+  const bubbleWrap = document.createElement('div');
+  bubbleWrap.className = 'bubble-wrap';
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.textContent = text;
 
+  const actionGroup = document.createElement('div');
+  actionGroup.className = 'message-actions';
+
+  if (type === 'outgoing') {
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'message-edit-btn';
+    editBtn.title = 'Edit chat';
+    editBtn.textContent = '✎';
+    editBtn.dataset.index = String(index);
+    actionGroup.appendChild(editBtn);
+  }
+
+  bubbleWrap.appendChild(bubble);
+  bubbleWrap.appendChild(actionGroup);
+
+  const meta = document.createElement('div');
+  meta.className = 'message-meta';
+
   const time = document.createElement('span');
   time.className = 'time';
   time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  wrap.appendChild(bubble);
-  wrap.appendChild(time);
+  meta.appendChild(time);
+
+  if (type === 'outgoing') {
+    const status = document.createElement('span');
+    status.className = 'message-status';
+    status.innerHTML = '&#10003;&#10003;';
+    status.setAttribute('aria-label', 'read');
+    meta.appendChild(status);
+  }
+
+  wrap.appendChild(bubbleWrap);
+  wrap.appendChild(meta);
   return wrap;
 }
 
@@ -234,9 +267,9 @@ function renderChat() {
   const entries = chatEntries.length ? chatEntries : [];
   chatBody.innerHTML = '<div class="date-pill">Hari ini</div>';
 
-  entries.forEach((entry) => {
+  entries.forEach((entry, index) => {
     if (entry && entry.text) {
-      chatBody.appendChild(createMessageBubble(entry.text, entry.type));
+      chatBody.appendChild(createMessageBubble(entry.text, entry.type, index));
     }
   });
 
@@ -285,6 +318,25 @@ function closeProfile() {
   profileScreen.classList.remove('active');
   chatScreen.classList.add('active');
 }
+
+chatBody.addEventListener('click', (event) => {
+  const editBtn = event.target.closest('.message-edit-btn');
+  if (!editBtn) return;
+
+  const index = Number(editBtn.dataset.index);
+  openEditor();
+
+  const row = chatRowList.querySelector(`.chat-row[data-index="${index}"]`);
+  if (row) {
+    const textarea = row.querySelector('.chat-row-text');
+    textarea.focus();
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+
+chatRowList.addEventListener('dblclick', () => {
+  openEditor();
+});
 
 addChatRowBtn.addEventListener('click', () => {
   chatEntries = [...chatEntries, { type: 'outgoing', text: '' }];
